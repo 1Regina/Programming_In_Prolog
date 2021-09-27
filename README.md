@@ -163,16 +163,17 @@
                Y is P / A .
          ```
       5. `is` supports:
-      | notation  	| meaning  	                              |
-      |---	         |---	                                    |
-      | X + Y  	   | the sum of X and Y   	                  |
-      | X - Y  	   | the difference of X and Y         	   |
-      | X * Y  	   | the product of X and Y              	   |
-      | X / Y 	      | the quotient of X divided by Y      	   |
-      | X // Y      	| the integer quotient of X divided by Y 	|
-      | X mod Y     	| the remainder of X divided by Y        	|
 
-   10. Satisfying goals
+         | notation  	| meaning  	                              |
+         |---	         |---	                                    |
+         | X + Y  	   | the sum of X and Y   	                  |
+         | X - Y  	   | the difference of X and Y         	   |
+         | X * Y  	   | the product of X and Y              	   |
+         | X / Y 	      | the quotient of X divided by Y      	   |
+         | X // Y      	| the integer quotient of X divided by Y 	|
+         | X mod Y     	| the remainder of X divided by Y        	|
+
+   10.  Satisfying goals
        1.  *conjunction* of goals to be satisfied
        2. via the known *clauses* e.g *fact* or a *rule* to reduce the task to that of satisfying a conjugation of *subgoals*
        3. if a gaol is not satisfied, *backtracking* will be initiated to *re-satisfy* the goals to find alterative way to satisfy the goals.
@@ -188,6 +189,6 @@
           2. searches through the database from where the place-marker was put. When it finds another unifying possibility, it marks the place and recontinue from 6 above.
           3. Further failure leads to further arrow retreats until it comes to another place-marker, while reset previous choices to uninstantiated.
           4. Prolog searches through the database for a clause after the place marker. A new place marker is recorded if it finds a clause that unifies with the goal. Boxes for subgoals are created and arrows starts moving downwards again. Otherwise arrows continue retreating upwards to find another place marker.
-       8. Unification. `?- sum(2+3).` unifies with *fact* `sum(X + Y).` : the argument of the sum structure is a structure with + sign as its functor and 2 and 3 as its components so X is instantiated to 2 and Y is instantiated to 3.
+   11. Unification. `?- sum(2+3).` unifies with *fact* `sum(X + Y).` : the argument of the sum structure is a structure with + sign as its functor and 2 and 3 as its components so X is instantiated to 2 and Y is instantiated to 3.
           1. Compare with computation using `is` predicate: `?- X is 2 + 3.`
           2. verbosely `add(X, Y, Z) :- Z is X + Y.`
