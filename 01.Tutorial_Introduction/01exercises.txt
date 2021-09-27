@@ -1,0 +1,23 @@
+Refer to 01.Tutorial_Introduction/sister.pl for both these 2 questions:
+
+Q1.2) The 2 answers are:
+
+?- sister_of(alice,X).
+X = edward ;
+X = alice.
+
+i) The other answer is found by looking through the database for female(alice). bcos it is the first argument of sister_of(alice,X) and going through the rule of sister_of
+ii) After that, it looks for parents(alice,M,F) and rest a parents(alice,victoria,albert). first via parents(alice,victoria,F) and eventually unifying at parents(alice,victoria,albert)
+iii) the 3rd goal is parents(Y, victoria,albert) unifies with parents(alice,victoria,albert) and now variable Y is known as alice.
+iv) all goals succeed and entire rule succeeds, with X = alice,and Y = alice. Since Y in the rule is shared with X in the question, then X is also instantiated to alice so Prolog display X = alice.
+
+Q1.3) See 
+
+Q1.4) See above.
+To avoid some object being her own sister, add to the sister_of rule a fact: diff(X,Y).
+
+sister_of(X, Y) :-
+    female(X),
+    parents(X, M, F),
+    parents(Y, M, F),
+    diff(X,Y).          /* X and Y are different */

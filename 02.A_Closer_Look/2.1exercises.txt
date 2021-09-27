@@ -1,0 +1,7 @@
+pilots(A,london) = pilots(london,paris) [Fail]
+point(X,Y,Z) = point(X1,Y1,Z1) [Pass. X = X1, Y = Y1, Z = Z1]
+letter(C) = word(letter) [Pass. C = letter]
+noun(alpha) = alpha [Fail]
+`student` = student  [Fail]
+f(X,X) = f(a,b) [Fail. X cannot be both a and b]
+f(X, a(b,c)) = f(Z, a(Z, c)) [Pass. X = Z and b = Z]

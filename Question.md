@@ -1,0 +1,1 @@
+Ex 2.1 : Is 02.A_Closer_Look/2.1exercises.txt correct?
