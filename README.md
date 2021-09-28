@@ -149,7 +149,7 @@
       1.  infix
       2.  right side is an arithmetic expression
       3.  so if left is unknown, then all the right variables must be known to evaluate.
-      4.  for arithmetic
+      4. for arithmetic
          ```
             /*   rule for population (pop) density for a country :
                The population density of country X is Y, if:
@@ -191,4 +191,97 @@
           4. Prolog searches through the database for a clause after the place marker. A new place marker is recorded if it finds a clause that unifies with the goal. Boxes for subgoals are created and arrows starts moving downwards again. Otherwise arrows continue retreating upwards to find another place marker.
    11. Unification. `?- sum(2+3).` unifies with *fact* `sum(X + Y).` : the argument of the sum structure is a structure with + sign as its functor and 2 and 3 as its components so X is instantiated to 2 and Y is instantiated to 3.
           1. Compare with computation using `is` predicate: `?- X is 2 + 3.`
-          2. verbosely `add(X, Y, Z) :- Z is X + Y.`
+          2. verbosely, the rule can be written as `add(X, Y, Z) :- Z is X + Y.`
+4. Ch03 Using Data Structures
+   1. head is the first element in a list and tail is the remaining elements
+   2. `|` as in `([X|Y])` instantiated X to the head and Y to the tail.
+   3. With 03.Using_Data_Structures/1list.pl, test `|`
+      ```
+         ?- p([X|Y]).
+         X = 1,
+         Y = [2, 3] ;
+         X = the,
+         Y = [cat, sat, [on, the, mat]].
+
+         ?- p([_,_,_,[_|X]]).
+         X = [the, mat].
+
+         ?- p([_,_,_,[A|X]]).
+         A = on,
+         X = [the, mat].
+      ```
+   4. Recursion case here has 2 boundary conditions -- either existent or not in the list
+      1. First boundary condition is first clause to cause the search through the list to be stopped if the first argument of member matches the head of the second argument.
+      2. Second boundary condition is when the second argument of member is the empty list. ie complete search to the end already.
+         ```
+            /* Fact: X as a member of the list that has X as its head */
+            member(X, [X|_]).
+            /* As a rule alternatively*/
+            member(X, [Y|_]) :- X = Y.
+            /* recursion : X is a member of the list if X is a member of the tail of the list*/
+            member(X, [_|Y]) :- member(X,Y).
+
+         ```
+      3. Be careful about
+         1. ending with "circular definition". chicken and egg problem
+            ```
+               parent(X, Y) :- child(Y, X).
+               child(A, B)  :- parent (B, A).
+
+            ```
+         2. Where subgoal relies on another goal which is the subgoal which run until memory runs out.
+            ```
+               person(adam).
+               person(X) :- person(Y), mother(X, Y).
+
+               AND QUESTION IS
+               ?- person(X).
+
+               SOLUTION is put rule before fact.
+               person(X) :- person(Y), mother(X, Y).
+               person(adam).
+
+            ```
+      4. Try to put rule before fact: see solution to issue 2 above except for when exceptional tail must be empty list case
+            ```
+               SOLUTION is put rule before fact.
+               person(X) :- person(Y), mother(X, Y).
+               person(adam).
+
+               EXCEPTION
+               islist([A|B]) :- islist(B).
+               islist([]).
+
+            ```
+   5. Mapping
+      1. definition: traverse the old structure component by component and construct the components of the new structure. ie retain old structure but with some modification.
+      2. in Dialog example (03.Using_Data_Structures/2translate.pl) Change 'do' to 'no', 'french' to 'german', and 'you' to 'I' for "do you speack french?" to return "no i speak german"
+      3. So translation is actually altering a list with head H and tail T gives a list with head X and tail Y if:
+         1. changing word H gives word X, and
+         2. altering the list T gives the list Y.
+      4. Translation involve database of many facts `change(X,Y).` **and** a *catchall* fact
+      5. first clause check for empty list. and also for end of of list as well
+         1. Example
+            ```
+               alter([], []).
+               alter([H|T],[X,Y]) :- change(H, X), alter(T, Y).
+
+               ?- alter([you, are, a, computer], Z).
+               Z = [i, [[am, not], [a, [computer, []]]]]
+            ```
+         2. First step
+            1. H is "you"
+            2. T is [are, a, computer]
+         3. Translate with goal `change(you,X).` from the facts in 03.Using_Data_Structures/2translate.pl so X is "i". As X is the head of output list in `alter([H|T],[**X**,Y])`, the first word in utput list is "i".
+         4. Next phase goal alter([are, a, computer], Y) follows the same rule with "are" being translate by `change(are, [am, not]).` such that `are` becomes the list `[am, not]` by the database.
+         5. This eventually leaves us with `alter([a, computer], Y).`
+            1. Searching through the database for `change(a, X)` without success leads to the catchall fact `change(X, X)` so "a" remains "a"
+            2. Return to `alter` rule again with `computer` as head of input list and `[]` as tail of input list.
+            3. `change(computer,X)` matches with the catchall.
+            4. Finally `alter` is called with the empty list `[]` which matches the first alter clause `alter([], []).` resulting in an empty list thus ending the sentence. (rem a list ends with an empty tail).
+         6. Put together prologs responds with `Z = [i, [[am, not], [a, [computer, []]]]] ` or `Z = [i, [am, not], a, computer]`.
+         7. Interesting notes:
+            1. `[am, not]` is in the output list. It is essentially an example of a list that is a member of another list.
+            2. boundary conditions occurs when
+               1. fact `alter([], []).` for when input list becomes empty list , then terminate the output list by putting an empty list at its end, and
+               2. catchall `change(X, X).` for when all the change facts have been combed through, then retain the word unchanged by changing it into itself.
