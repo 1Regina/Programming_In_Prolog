@@ -253,7 +253,7 @@
                islist([]).
 
             ```
-   5. Mapping
+   5. Mapping (refer to 03.Using_Data_Structures/2translate.pl)
       1. definition: traverse the old structure component by component and construct the components of the new structure. ie retain old structure but with some modification.
       2. in Dialog example (03.Using_Data_Structures/2translate.pl) Change 'do' to 'no', 'french' to 'german', and 'you' to 'I' for "do you speack french?" to return "no i speak german"
       3. So translation is actually altering a list with head H and tail T gives a list with head X and tail Y if:
@@ -285,3 +285,80 @@
             2. boundary conditions occurs when
                1. fact `alter([], []).` for when input list becomes empty list , then terminate the output list by putting an empty list at its end, and
                2. catchall `change(X, X).` for when all the change facts have been combed through, then retain the word unchanged by changing it into itself.
+   6. Recursive Comparison (See 03.Using_Data_Structures/3compare_car.pl)
+      1. First create a predicate fuel_consumed for car with list of fuel consumption over 4 routes in their order.
+         ```
+            fuel_consumed(waster, [3.1, 10.4, 15.9, 10.3]).
+            fuel_consumed(guzzler, [3.2, 9.9, 13.0, 11.6]).
+            fuel_consumed(prodigal, [2.8, 9.8, 13.1, 10.4]).
+         ```
+      2. The comparison predicate `equal_or_better_consumption` to compare 2 consumption with underlying yardstick -- consumption is equal or better" if less than 5% more than the ave of the two. So the threshold is 1/20 of the average or 1/40 of the sum.
+         ```
+            equal_or_better_consumption(Good, Bad) :-
+            Threshold is (Good + Bad) / 40,
+            Worst is Bad + Threshold,
+            Good < Worst.
+         ```
+      3. Rule to compare 2 cars based on their fuel consumption that over each of the 4 routes, it beats the relative car.
+         ```
+            prefer(Car1, Car2):-
+            fuel_consumed(Car1, Con1),
+            fuel_consumed(Car2, Con2),
+            always_better(Con1, Con2).
+         ```
+      4. A rule to compare consumption for 2 cars across each corresponding element across the list of 4 routes.
+         1. Code rules
+            ```
+               always_better([], []).
+               always_better([Con1|T1], [Con2|T2]) :-
+                  equal_or_better_consumption(Con1, Con2),
+                  always_better(T1, T2).
+            ```
+         2. `always_better([Con1|T1], [Con2|T2])` means first list is always better if its head `Con1` is equal or better consumption that the comparative head `Con2` and plus its tail of first list `T1` is always better than the tail of the comparative list `T2`.
+         3. Above is recursion: Test heads of 2 lists, then the 2 heads via second layer/element of remaining lists, then 3rd pair of heads of the original lists which is the remaining lists of last 2 routes. This continues until all 4 corresponding elements in 2 respective lists are compared, each time invoking recursion.
+         4. When the boundary condition fails ie `equal_or_better_consumption` fails, the original `always_better` goal will fail also.
+      5. Subtly different from `always_better` is `sometimes_better`. `sometimes_better` achieve boundary condition when an element in first list is a better consumption than corresponding element in the second list. ie succeed without going any further down the list. Note that at least 1 pair of elements needs to be better otherwise the predicate would fail bcos both both clauses specify non-empty lists in both arguments.
+         ```
+            sometimes_better([Con1|_],[Con2|_]) :-
+               equal_or_better_consumption(Con1, Con2).
+            sometimes_better([_|Con1], [_|Con2]) :-
+               sometimes_better(Con1, Con2).
+
+         ```
+      6. Ex 3.1 A significant better consumption comparison. See 03.Using_Data_Structures/3compare_car.pl :
+         ```
+         significant_better_consumption(Good, Bad) :-
+            Good < Bad ,
+            Margin is (abs(Bad - Good)) * 2,
+            Good < (4 * Margin).
+
+         significant_better([Con1|_],[Con2|_]) :-
+            significant_better_consumption(Con1, Con2).
+         significant_better([_|Con1], [_|Con2]) :-
+            significant_better(Con1, Con2).
+
+         ```
+         1. Test with
+            ```
+               ?- significant_better_consumption(4,5).
+               true.
+               ?- significant_better_consumption(4.8,5).
+               false.
+               ?- significant_better_consumption(2,10).
+               true.
+
+            ```
+         2. Within expectation
+            ```
+               /* bcos 2nd head is true */
+               ?- significant_better([4.8,1,4.5] ,[5,5,5]).
+               true
+
+               /* bcos 1st head is true */
+               ?- significant_better([1 ,4.8, 4.5 ], [5 ,5, 5 ]).
+               true
+
+               /* bcos none is true */
+               ?- significant_better([5 ,4.8, 4.5 ], [5 ,5, 5 ]).
+               false.
+            ```
