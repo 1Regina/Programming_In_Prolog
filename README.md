@@ -362,3 +362,117 @@
                ?- significant_better([5 ,4.8, 4.5 ], [5 ,5, 5 ]).
                false.
             ```
+   7. Joining Structures Together
+      1. Definition of `append` 2 lists into 1 list:
+         ```
+            append([], L, L).
+            append([X|L1], L2, [X|L3]) :- append(L1, L2, L3).
+
+            /* returns */
+            ?- append([alpha, beta], [gamma, delta], X).
+            X = [alpha, beta, gamma, delta].
+
+            ?- append(X, [b, c, d], [a,b,c,d]).
+            X = [a]
+         ```
+         1. Boundary condition is when first list is empty list. Then what returns is the appended list.
+         2. Second rule has 3 principles:
+            1. Head of first list ie `X` will become the head of the 3rd list.
+            2. Second argument `L2` will append to tail of first list (`L1`) to form/become tail of the 3rd argument `L3`.
+            3. Pt 2 is perform via the recursive append.
+            4. Continually take head of remaining tail from first argument until it becomes empty list ie until the boundary condition `append([], L, L).` occurs.
+      2. Like the bicycle parts in 03.Using_Data_Structures/5bicycle.pl and hierachical tree, partsoflist can be applied to generate sentences from a grammar after decomposition into noun phrase, verb phrase, determiner.
+   8. Accumulator
+      1. Len of list without accumulator:
+         ```
+            listlen([],0).
+            listlen([H|T], N) :- listlen(T, N1), N is N1 + 1.
+         ```
+         1. 2 clauses: the boundary condition and the recursive case
+         2. Boundary condition = empty list has length 0.
+         3. Recursive case with rule that the length of non-empty list is computed by adding 1 to length of the tail of the list.
+      2. With accumulator
+         ```
+            /* format */
+            lenacc(L, A, N).
+
+            listlen(L, N) :-
+               lenacc(L, 0, N).
+
+            lenacc([], A, A).
+            lenacc([H|T], A, N) :-
+               A1 is A + 1,
+               lenacc(T, A1, N).
+         ```
+         1. `lenacc([], A, A).` For empty list, the length is whatever has been accumulated so far (A).
+         2. Second clause `A1 is A + 1 ` increase accumulation by 1 to become `A1`. Then recur on the tail with `A1` .
+         3. Sequence for list [a, b, c, d, e]:
+            1. lenacc([a, b, c, d, e], 0, N)
+            2. lenacc([b, c, d, e], 1, N)
+            3. lenacc([c, d, e], 2, N)
+            4. lenacc([d, e], 3, N)
+            5. lenacc([ e], 4, N)
+            6. lenacc([], 5, N)
+            7. activate boundary condition lenacc([], A, A).
+            8. N becomes instantiated to 5 as N = A as A = 5.
+      3. Bicycle parts with accumulator 03.Using_Data_Structures/7accum_bicycle.pl vs 5bicycle.pl
+         1. `partsacc`
+            ```
+               /* NEW */
+               /* with accumulator */
+               partsof(X, P) :-
+                  partsacc(X, [], P).
+
+               partsacc(X, A, [X|A]) :-
+                  basicpart(X).
+
+               /* partsacc is similar to 5bicycle.pl partsof except for accumulator
+               partsacc (X, A, P) means the parts of object X, when added to the list A, gives the list P. */
+
+               partsacc(X, A, P) :-
+                  assembly(X, Subparts),
+                  partsacclist(Subparts, A, P).
+
+            ```
+            1. first clause of `partsacc(X, A, [X|A]) :- basicpart(X).` construct a new list with head being the first argument `X` and tail being the accum list of parts. Condition is object is a basic part.
+            2. second clause of `partsacc(X, A, P) :- assembly(X, Subparts),  partsacclist(Subparts, A, P).` is applicable for objects which are assembly. 1st find the list of subparts, then apply `partsacclist` to find subparts of each part in the list
+         2. `partsacclist`
+            ```
+               /* partsacclist is similar to 5bicycle.pl partsoflist except for accumulator*/
+               partsacclist([], A, A).
+               partsacclist([P|Tail], A, Total) :-
+                  partsacc(P, A, Hp),
+                  partsacclist(Tail, Hp, Total).
+            ```
+            1. first clause `partsacclist([], A, A).` is the boundary case which is result of accumulated list of subparts (A).
+            2. second clause `partsacclist([P|Tail], A, Total) :- partsacc(P, A, Hp), partsacclist(Tail, Hp, Total).` The recursive case call `partsacc` to find subparts of next eleemnt on the given list. Recursive goal deals with the remainder of the list.
+            3. Second clause 2nd argument (`A`) becomes the accumulator for the `partsacc` goal to give result `Hp` which becomes the accumulator for the recursive goal.
+      4. Side effect with accumulator is the output list is in reverse order to the original list. For bicycle parts, this reversal is ok but it is not ok for English sentences. Bcos for every basic part, a new accumulator is created which has this part appending to to the end of list `.... partsacclist(Tail, Hp, Total).`.
+   9. **Difference lists** to overcome accumulator order reversal problem with 2 arguments
+      1.  one argument for "result so far"
+      2.  one argument for "hole where further info can be plugged into for final result"
+         ```
+            [a, b, c|X] X
+         ```
+      3. With a plug hole to sequence the result in order:
+         ```
+            /* Changes with plug hole to ensure accumulator results is not reversed */
+            partsof(X, P) :-
+               partsacc(X, P, Hole), Hole = [].
+               /* alternatively partsacc(X, P , []). */
+
+            partsacc(X, [X| Hole], Hole) :-
+               basicpart(X).
+            partsacc(X, P, Hole) :-
+               assembly(X, Subparts),
+               partsacclist(Subparts, P, Hole).
+
+         ```
+         1. `partsof` clause: `partsacc` is called only once by `partsof`, instantiate the `Hole` with [] to terminate the difference list. This `partsacc(X, P, Hole), Hole = [].` means that the very last hole will be filled with `[]` even before the list contents are known.
+         2. `partsacc` first clause returns a *difference list* with the object `X` as first argument if it is a basic part.
+         3. `partsacc` second clause is for assemblies. It
+            1. find the `subparts` list
+            2. delegate traversal of list to `partsacclist`, passing the 2 requistie arguments making the difference -- `P` and `Hole`. This in turn use `partsacc` (specficially `... partsacc(P, Total, Hole1),` in `partsacclist` to list subparts using the difference list via `Total` and `Hole1`.
+            3. while still on `partsacclist` which was extended from `partsacc` , `partsacclist(T, Hole1, Hole).` is essentially the recursive goal to return the portion of difference list starting at `Hole` and ending at `Hole`.
+            4. Result: list between `Total` and `Hole` is result of second `partacclist` clause "weaving" together partial results. ![Alt text](03.Using_Data_Structures/differenceList.png?raw=true "Traversal in partacclist - Difference List (ordered accumulator)") <p align="center"> Traversal in partacclist - Difference List (ordered accumulator) </p>
+5. Ch04 Backtracking and the "Cut"
