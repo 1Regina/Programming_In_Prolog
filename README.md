@@ -476,3 +476,61 @@
             3. while still on `partsacclist` which was extended from `partsacc` , `partsacclist(T, Hole1, Hole).` is essentially the recursive goal to return the portion of difference list starting at `Hole` and ending at `Hole`.
             4. Result: list between `Total` and `Hole` is result of second `partacclist` clause "weaving" together partial results. ![Alt text](03.Using_Data_Structures/differenceList.png?raw=true "Traversal in partacclist - Difference List (ordered accumulator)") <p align="center"> Traversal in partacclist - Difference List (ordered accumulator) </p>
 5. Ch04 Backtracking and the "Cut"
+   1. Multipple solutions
+      ```
+         /* Dance Party */
+         possible_pair(X, Y) :- boy(X), girl(Y).
+
+         boy(john).
+         boy(marmaduke).
+         boy(bertram).
+         boy(charles).
+
+         girl(griselda).
+         girl(ermintrude).
+         girl(brunhilde).
+
+         ?- possible_pair(X,Y).
+         X = john,
+         Y = griselda ;
+         X = john,
+         Y = ermintrude ;
+         X = john,
+         Y = brunhilde ;
+         X = marmaduke,
+         Y = griselda ;
+         X = marmaduke,
+         Y = ermintrude ;
+         X = marmaduke,
+         Y = brunhilde ;
+         X = bertram,
+         Y = griselda ;
+         X = bertram,
+         Y = ermintrude ;
+         X = bertram,
+         Y = brunhilde ;
+         X = charles,
+         Y = griselda ;
+         X = charles,
+         Y = ermintrude ;
+         X = charles,
+         Y = brunhilde.
+      ```
+      1. Prolog produces solutions in this order bcos
+         1. first satisty the goal boy(X) ie John, then the girl(Y) ie griselda.
+         2. With `;` for backtracking, Prolog attemps to  re-satisfy the girl goal to satisfy the possible_pair goal. This brings us to to girl ermintrude giving the pair john and ermintrude as 2nd solution.
+         3. Eventually at john and brunhilde, the place-marker is at the the end of database and the next time, the goal fails. Now it tries to re-satisfy boy(X). Since the place-marker was earlier placed at the first boy fact, the next solution would be the second boy marmaduke.
+         4. Upon satisfying the second boy for the boy goal, Prolog attempts to satifsy the girl(Y) goal from the start again ,ie griselda the first girl. So the next 3 solution is marmaduke and the 3 different girls.
+         5. On the following attempt, girl goal cannot be re-satisfied again and we find another boy and begin search for girl from scratch.
+         6. At the end, no more solution for girl goal and no more solution for boy goal such that the program cannot find anymore pairs.
+   2. The "Cut"
+      1. tells Prolog which previous choice it needs not consider again when it backtracks through the chain of satisfied goals. (Save memory and time).
+      2. Note this suceeds immediately and cannot be re-satisfied. (side-effects)
+      3. "Cut" alters the flow of satisfaction ![Alt text](04.Backtracking_and_the_Cut/cut.png?raw=true "The "Cut" alters the flow of satisfaction") <p align="center"> Cut limits the facility to basic facility out of all available facilities (general and basic) </p>
+      4. "Cut" changes the flow of satisfaction path so as to avoid all the place markers between the facility goal (comprising "basic" and "additional") and the cut goal("basic") inclusive. Thus if backtracking later retreat past this point, the facility goal will immediately fail. Result: alternative solutions for goal *book_overdue('A. Jones', Book).*
+      5. Summary effect: If there is overdue book, only the basic facilities is available to the client. No need to go through all the overdue books nor any other rules about facilities.
+      6. When a cut is encountered as a goal, commitment is made only to all choices made since parent goal (the `!` box) was invoked. All other alternatives are discarded such that attempt to re-satisfy goal between parent goal and cut goal will fail.
+      7. In `foo` , Prolog will backtrack among goals a, b, and c until the success of c causes the "fence" to be crossed to the right to reach goal d. Then backtracking can occur among d,e, and f, maybe safisfying the entire conjunction several times. But if d fails, the "fence" is crossed to the left, then no attempt will be made to re-satisfy goal c: the entire conjunction of goals fail and the goal `foo` also fail.
+         ```
+            foo :- a, b, c, !, d, e, f.
+         ```
