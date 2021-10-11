@@ -526,7 +526,7 @@
    2. The "Cut"
       1. tells Prolog which previous choice it needs not consider again when it backtracks through the chain of satisfied goals. (Save memory and time).
       2. Note this suceeds immediately and cannot be re-satisfied. (side-effects)
-      3. "Cut" alters the flow of satisfaction ![Alt text](04.Backtracking_and_the_Cut/cut.png?raw=true "The "Cut" alters the flow of satisfaction") <p align="center"> Cut limits the facility to basic facility out of all available facilities (general and basic) </p>
+      3. "Cut" alters the flow of satisfaction ![Alt text](04.Backtracking_and_the_Cut/cut.png?raw=true "The Cut alters the flow of satisfaction") <p align="center"> Cut limits the facility to basic facility out of all available facilities (general and basic) </p>
       4. "Cut" changes the flow of satisfaction path so as to avoid all the place markers between the facility goal (comprising "basic" and "additional") and the cut goal("basic") inclusive. Thus if backtracking later retreat past this point, the facility goal will immediately fail. Result: alternative solutions for goal *book_overdue('A. Jones', Book).*
       5. Summary effect: If there is overdue book, only the basic facilities is available to the client. No need to go through all the overdue books nor any other rules about facilities.
       6. When a cut is encountered as a goal, commitment is made only to all choices made since parent goal (the `!` box) was invoked. All other alternatives are discarded such that attempt to re-satisfy goal between parent goal and cut goal will fail.
