@@ -534,3 +534,52 @@
          ```
             foo :- a, b, c, !, d, e, f.
          ```
+   3. "Cut" uses
+      1. Right rule found for a particular goal. The "cut" says "if you get this far, you have picked the correct rule for this goal."
+      2. For telling the systems where to fail a particular goal immediately so it won't try for alternative solutions. "Stop trying if you get to here."
+      3. To terminate backtracking looking for alternative solutions. "If you get to here, you have found the only solution to this problem, no point ever looking for alternatives."
+   4. "Cut" example
+      1. Recursive example
+         ```
+            sum_to(1,1) : !.
+            sum_to(N, Res) :-
+               N1 is N - 1,
+               sum_to(N1, Res1),
+               Res is Res1 + N.
+         ```
+         1. first clause = boundary condition for 1 where result is also 1.
+         2. second clause = recusion where new goal is 1st argument is one less again until boundary condition is reached.
+         3. Prolog will try to match the number agst 1 first and try the second rule if this fails ie the second rule are for non-1 numbers. But actually both rules allows for `sum_to(1, X).` so we need to specify in first rule a "cut" to say never remake decision about which rule to use for sum_to goal ie only get this far with number = 1
+         4. Ex 4.1 Using the above, the program will run into an infinite loop as it toggle between first and second clause for N = 1 SO it needs a condition. The improved solution is
+            ```
+               sum_to(N,1) :- N =< 1, !.
+               sum_to(N, R) :-
+                  N1 is N - 1,
+                  sum_to(N1, R1),
+                  R is R1 + N.
+
+            ```
+            1. When condition is true, go for 1st clause and no more recursive goals. If false, then go for second clause. (Cut purpose)
+      2. *only if* with `\+` . `\+X` succees only if X, when seen as a Prolog goal fails. ie `\+X` means that "X is not satisfiable as a Prolog goal." Two alternative for when X is not 1:
+         ```
+            /* more alternatives with \+X for X is not satisable */
+            /* OPTION 1 with \+ */
+            sum_to(1,1).
+            sum_to(N,R) :-
+               \+(N = 1),
+               N1 is N-1,
+               sum_to(N1, R1),
+               R is N + R1.
+
+            /* OPTION 2 with \+ */
+            sum_to(N,1) :- N =< 1.
+            sum_to(N,R) :-
+               \+(N =< 1),
+               N1 is N - 1,
+               sum_to(N1, R1),
+               R is N + R1.
+         ```
+         1.  More replacement options
+             1.  `\+(N=1)` can be replaced by `N\=1`
+             2.  `\+(N=<1)` can be replaced by `N>1`
+         2. `\+` are preferred over cuts as they are easier to understand. But need to ensure `\+` involves showing that it is a satisfiable goal.
