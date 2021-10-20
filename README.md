@@ -583,3 +583,53 @@
              1.  `\+(N=1)` can be replaced by `N\=1`
              2.  `\+(N=<1)` can be replaced by `N>1`
          2. `\+` are preferred over cuts as they are easier to understand. But need to ensure `\+` involves showing that it is a satisfiable goal.
+         3. Weigh against complexity to use `\+` or `!`
+            1. Hard to understand and may even end up satisfying B twice for `B` and `\+ B`
+               ```
+                  A :- B, C.
+                  A :- \+B, D.
+               ```
+            2. Easier to understand incidentally with cut
+               ```
+                  A :- B, !, C.
+                  A :- D.
+               ```
+      3. Cut can make more sense esp when appending empty list to front of another list for **efficiency reasons**.
+            1. This is inefficient bcos of backtracking to satisfy append([],[a,b,c,d],X) goal.
+               ```
+                  appennd([], X, X).
+                  append([A|B], C, [A|D]) :- append (B,C,D).
+               ```
+            2. This cut improves efficiency
+               ```
+                  appennd([], X, X) :- !.
+                  append([A|B], C, [A|D]) :- append (B,C,D).
+
+               ```
+   5. **cut-fail combination** Fail means the goal always fail and causes backtracking, similar to trying to satisfy a goal for a predicate with no facts or rules. To stop finding alternatives bcos RECALL: during BACKTRACKING, Prologs tries to re-satisfy **EVERY** goal that has suceeded. **Insert a cut (to freeze the ddecision) before failing** See 04.Backtracking_and_the_Cut/taxpayer.pl.
+         1. goal for someone being an average taxpayer can be abandoned if the spouse earns more than 3000
+            ```
+               average_taxpayer(X) :-
+               spouse(X, Y),
+               gross_income(Y, Inc),
+               Inc > 3000,
+               !, fail.
+            ```
+         2. if pernsion is < P, then the person has no gross income
+            ```
+               gross_income(X, Y) :-
+               gross_salary(X, Z),
+               investment_income(X, W),
+               Y is Z + W.
+            ```
+   6. Call predicate **`\+`**: treats argument as goal to satisfy it. Below means for first rule to be applicable it P can be shown and second to be applicable otherwise.
+      ```
+         \+P :- call(P), !, fail.
+         \+P.
+      ```
+      1. ie If Prolog can satisfy call(P), it should thereupon abandon satisfying the \+ goal.
+      2. OTHERWISE if it cannot show call(P), then it never gets to the cut. Bcos the call(P) goal fail, hence backtracking begins and Prolog finds the second rule. This results in goal \+P succeeding when P (indicated by call(P)) is not provable.
+   7. Terminate a "generate and test"
+      1. "Generate": process of generating acceptable solutions(success) during backtracking (vs when no more solutions can be found(failure)).
+      2. "Test" : checking whether the alternative solution(s) generated is acceptable.
+      3. "Tester" 
