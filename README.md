@@ -632,4 +632,59 @@
    7. Terminate a "generate and test"
       1. "Generate": process of generating acceptable solutions(success) during backtracking (vs when no more solutions can be found(failure)).
       2. "Test" : checking whether the alternative solution(s) generated is acceptable.
-      3. "Tester" 
+      3. In 04.Backtracking_and_the_Cut/tic_tac_toe.pl
+         ```
+            line(b(X,Y,Z,_,_,_,_,_,_),X,Y,Z). /* top row */
+            line(b(_,_,_,X,Y,Z,_,_,_),X,Y,Z). /* second row */
+            line(b(_,_,_,_,_,_,X,Y,Z), X,Y,Z).
+            line(b(X,_,_,Y,_,_,Z,_,_),X,Y,Z).
+            line(b(_,X,_,_,Y,_,_,Z,_),X,Y,Z).
+            line(b(_,_,X,_,_,Y,_,_,Z),X,Y,Z).
+            line(b(X,_,_,_,Y,_,_,_,Z),X,Y,Z).
+            line(b(_,_,X,_,Y,_,Z,_,_),X,Y,Z).
+
+            /* Case where x-player is threatening to win on next move */
+            /* cut means 1 threat is enough to force a move */
+            forced_move(Board) :-
+               line(Board,X,Y,Z),
+               threatening(X,Y,Z),
+               !.
+
+            threatening(e,x,x).
+            threatening(x,e,x).
+            threatening(x,x,e).
+         ```
+         1. program tries to find a line with 2 occupied squares and report a forced_move situation.
+         2. In forced_move, the goal of line(Board,X,Y,Z) is the "generator" of possible lines which has many possibilities.
+         3. In forced_move, the "tester" goal is threatening(X,Y,Z) which looks for 1 of 3 possible threatening patterns.
+         4. Thus the sequence is:
+            1. line propose a line
+            2. threatening check if line is threatening. If forced, forced_move goal succeed.
+            3. otherwise, backtracking kicks in to find another line.
+            4. If we get to the point when line can generate no more lines, then forced_move goal correctly fails ie no forced move.
+         5. But mostly, there is no alternative so save on effort for forced_move to search thru before itself failing. So put a "cut" at the end of forced_move.  EFFECT is freeze the last successful line solution. This means when looking for forced moves, only the first solution is important.
+      4. In 04.Backtracking_and_the_Cut/4.3.3b_divide.pl, the result of dividing 27 by 6 is 4 bcos 4 * 6 is less than or equal to 27, and 5 * 6 is greater than 27.
+         ```
+            divide(N1, N2, Result) :-
+            is_integer(Result),
+            Product1 is Result * N2,
+            Product2 is (Result + 1) * N2,
+            Product1 =< N1, Product2 > N1,
+            !.
+         ```
+         1. generator =  `is_integer`
+         2. tester = rest of goals bcos for specific N1, N2, `divide(N1, N2, Result)` can only succeed for 1 possible value for Result.
+         3. so although `is_integer` can generate infinitely many candidates, the tester will limit solution to 1. And the cut purpose is to stop trying after we have a `Result` that passes the test.
+         4. The cut stop backtracking from finding alternatives for `is_integer`.
+      5. Cut problem. Putting cut at the wrong place could give a wrong result ie no solution when there are. So it is impt to be certain how the rules work. p96 shows
+         1. Freezing everything saying no further solutions altho there are actually other solutions.
+            ```
+               append([], X, X) : -!.
+               append([A|B], C, [A|D]) :- append(B,C,D).
+
+               ?- append(X, Y, [a,b,c]).
+               will return
+               X = [], Y= [a,b,c] only.
+            ```
+         2. 04.Backtracking_and_the_Cut/4.4_cut_problem.pl is intended to say everyone has 2 parents expect adam and eve. The cut prevents backtracking to 3rd rule of the person(X) being adam or eve. See tge 2 options as alternative.
+         3. summary: review all the uses of cut to see the rules are used correctly.
