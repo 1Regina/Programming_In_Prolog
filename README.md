@@ -9,6 +9,14 @@
       7. To have more answers like uninstantiated variables outcome, hit `;`
       8. if <Enter> before fullstop, next line is | so to complete the query, insert `.`
       9. comment out with `/* .... */` (see 01.Tutorial_Introduction/sister.pl)  and can also be used to number /*1*/ (see 01.Tutorial_Introduction/steal.pl )
+      10. Enclose capitalised words with '' e.g event(1505,['Euclid',translated, into 'Latin']) so they wont read as variables.
+      11. `read( X )` in goal to create interactive QA program. After swipl file.pl,  *SOMETHING* + `.` + ` ` **or** `(enter)` to retrieve the accompanying contents e.g `hello1(Event) :- read(Date), event(Date, Event).`
+         ```
+            ?- hello1(X).
+            |: 1523.
+
+            X = ['Christian', 'II', flees, from, 'Denmark'].
+         ```
    2. Additional material https://www.swi-prolog.org/pldoc/man?section=quickstart
 2. Ch01 Tutorial Introduction
    1. Rules
@@ -686,5 +694,44 @@
                will return
                X = [], Y= [a,b,c] only.
             ```
-         2. 04.Backtracking_and_the_Cut/4.4_cut_problem.pl is intended to say everyone has 2 parents expect adam and eve. The cut prevents backtracking to 3rd rule of the person(X) being adam or eve. See tge 2 options as alternative.
+         2. 04.Backtracking_and_the_Cut/4.4_cut_problem.pl is intended to say everyone has 2 parents expect adam and eve. The cut prevents backtracking to 3rd rule of the person(X) being adam or eve. See tHe 2 options as alternative.
+            ```
+               number_of_parents(adam, 0).
+               number_of_parents(eve, 0).
+               number_of_parents(X, 2) :- \+(X = adam), \+ (X = eve).
+            ```
          3. summary: review all the uses of cut to see the rules are used correctly.
+6. Ch05 Input and Output
+   1. Using atoms in list for a database to facilitate searches. Here the headlines are in lists of atoms to help find the dates when certain key events happen.
+      ```
+         event(1505, ['Euclid', translated, into, 'Latin']).
+         event(1510, ['Reuchlin-Pfefferkorn', controversy]).
+         event(1523, ['Christian', 'II', flees, from, 'Denmark']).
+
+         /*goal when(X,Y) succeeds if X is mentioned in year Y*/
+         when(X,Y) :- event(Y, Z), member(X, Z).
+
+         ?- when('Denmark', D).
+         D = 1523.
+      ```
+   2. Reading and writing
+      1. program waits for me to type input  means *reading* the input
+      2. progrma displays output to me means *writing* the output.
+      3. `read` + *SOMETHING* + `.` + ` ` **or** `(enter)`
+         1. uninstantiated X will caused next term to be read and instantiated.
+         2. read predicate cannot be re-satisfied and succeeds at most once. It cannot re-satisfy once it reach backtracking.
+         3. **read** is special
+            ```
+               hello1(Event) :- read(Date), event(Date, Event).
+
+               get event by enter Date bcos read is in the goal
+
+               ?- hello1(X).
+               |: 1523.
+
+               X = ['Christian', 'II', flees, from, 'Denmark'].
+            ```
+      4. `nl` = new line. succeeds only once
+      5. `write` succeeds only once
+      6. `pp` for pretty print. Elements in list get displayed as a column and list in a list get displayed as a indented column like a parent-child token of ud-gf. This is done by 05.Input_and_Output/5.1.2_pretty_print.pl ![Alt text](05.Input_and_Output/pretty_print..png?raw=true "Pretty Print") <p align="center">
+      7. second arg of pp is the column counter. So to display a list would be pp(L,0)
