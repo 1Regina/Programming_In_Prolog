@@ -733,5 +733,53 @@
             ```
       4. `nl` = new line. succeeds only once
       5. `write` succeeds only once
-      6. `pp` for pretty print. Elements in list get displayed as a column and list in a list get displayed as a indented column like a parent-child token of ud-gf. This is done by 05.Input_and_Output/5.1.2_pretty_print.pl ![Alt text](05.Input_and_Output/pretty_print..png?raw=true "Pretty Print") <p align="center">
-      7. second arg of pp is the column counter. So to display a list would be pp(L,0)
+      6. `pp` for pretty print. Elements in list get displayed as a column and list in a list get displayed as a indented column like a parent-child token of ud-gf. This is done by 05.Input_and_Output/5.1.2_pretty_print.pl ![Alt text](05.Input_and_Output/pretty_print.png?raw=true "Pretty Print") <p align="center">
+      7. how `ppx` works:
+         ```
+            pp([H|T], I) :- !, J is I + 3, pp(H,J), ppx(T, J), nl.
+            pp(X,1) :- spaces(I), write(X), nl.
+         ```
+         1. second arg of pp is the column counter. So the top level goal to display a list would be pp(L,0) initialising the counter to 0.
+         2. 1st clause handles special case whereby first argument is a list then the column counter set to 3 and then pretty print the head of list which is a list itself
+         3. then `ppx` aligns the tail of the list in the same column.
+         4. second clause of `pp` for pretty print somehting that is not a list.ie  indent to the specified col, use `write` to display, and then new line. `nl` to terminate each list with a new line.
+      8. the predicate *spaces* defines the number of "space" / spacing by the argument of spaces
+      9. To get any history headlines that mentions "England" in 05.Input_and_Output/5.1.1_events.pl
+         ```
+            phh([]) :- nl.
+            phh([H|T]) :- write(H), spaces(0), phh(T).
+         ```
+      10. To extract event with the word 'Latin' using backtracking to search the database. Whenever member goal fails, an attempt is made to re-satisfy the event.
+         ```
+            ?- event(_, L), member('Latin',L), phh(L).
+            EuclidtranslatedintoLatin
+            L = ['Euclid', translated, into, 'Latin']
+         ```
+      11. *write* vs *write_canonical* : write_canonical auto handles precedences of operators. Some prolog systems call it *display*
+         ```
+            ?- write(a+b*c*c), nl, write_canonical(a+b*c*c), nl.
+            a+b*c*c
+            +(a,*(*(b,c),c))
+            true.
+         ```
+      12. To make interactive program to list headlines and using phh to display a list of atoms for question with **hello2** in 05.Input_and_Output/5.1.1_events.pl. Steps:
+         1. display question
+         2. read to read the date like hello1
+         3. phh to display the retrieved headline
+         4. noticed the first phh shows it can display any list of atoms regardless of its origin
+         5. ps: remember ' ' is for capital words to not mistaken them as Variable and bcos of ? at desire*/
+            ```
+               in .pl
+               hello2 :-
+               phh(['What', date, do, you, 'desire? ']),
+               read(D),
+               event(D, S),
+               phh(S).
+               -------------------------
+               in terminal after swipl
+               ?- hello2.
+               Whatdatedoyoudesire?
+               |: 1510.
+               Reuchlin-Pfefferkorncontroversy
+               true.
+            ```
