@@ -783,3 +783,31 @@
                Reuchlin-Pfefferkorncontroversy
                true.
             ```
+   3. Checking character errors:
+      1. `check_line` read everything until `\n` and which then  compare every pair of char for known "typing errors" ie "qw" and "cv" with its X instantiated to 'yes' or 'no'.
+      2. `rest_line` is always called after a character is read. Its clauses do:
+         1. check end of line reached
+         2. match known typing error in previous and current characters.
+         3. keep checking for next character as not known typing error is spotted at this point.
+      3. `put_char` display whatever character
+         ```
+            ?- put_char('h'), put_char('i').
+            hi
+            true.
+
+            ?- put_char('h'), put_char('i'), nl, put_char('Y'), put_char('o'), put_char('u').
+            hi
+            You
+            true.
+         ```
+      4. `correct_line` correct a known typing error when it is detected otherwise the characters are simply copied out unchanged but its limitations are
+         1. limited to errors with only 2 adjacent char
+         2. coerce the 2 adjacent errorneous chars into 1 single character via `typing_correction`.
+      5. `correct_rest_line` output is the corrected text with character in its first argument. "lawn mower"
+   4. Sentences
+      1. Special characters quote `" " ''` and `-`
+      2. Space character between words
+      3. Word forming character ',' , '.', ';', ':', '!'
+      4. End of sentence ',' , '?', '!'
+      5. Everything to lowercase
+      6. avoid backtracking over a use of get_char to avoid losing the character it reads in.
